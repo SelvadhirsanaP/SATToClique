@@ -1,0 +1,112 @@
+
+import java.util.*;
+
+class Vertex {
+    int clause;
+    String literal;
+
+    Vertex(int clause, String literal) {
+        this.clause = clause;
+        this.literal = literal;
+    }
+}
+
+public class SATToClique {
+
+    static boolean isContradictory(String a, String b) {
+        if (a.startsWith("!"))
+            return a.substring(1).equals(b);
+
+        if (b.startsWith("!"))
+            return b.substring(1).equals(a);
+
+        return false;
+    }
+
+    static boolean checkClique(boolean[][] graph, int[] selected, int k) {
+
+        if (selected.length < k)
+            return false;
+
+        for (int i = 0; i < selected.length; i++) {
+            for (int j = i + 1; j < selected.length; j++) {
+
+                if (!graph[selected[i]][selected[j]])
+                    return false;
+            }
+        }
+
+        return true;
+    }
+
+    public static void main(String[] args) {
+
+        String[][] clauses = {
+            {"x1", "x2", "!x3"},
+            {"!x1", "x3", "x4"},
+            {"x2", "!x3", "!x4"}
+        };
+
+        ArrayList<Vertex> vertices = new ArrayList<>();
+
+        // Create vertices
+        for (int i = 0; i < clauses.length; i++) {
+            for (int j = 0; j < clauses[i].length; j++) {
+                vertices.add(new Vertex(i, clauses[i][j]));
+            }
+        }
+
+        int n = vertices.size();
+        boolean[][] graph = new boolean[n][n];
+
+        // Construct graph
+        int edges = 0;
+
+        for (int i = 0; i < n; i++) {
+            for (int j = i + 1; j < n; j++) {
+
+                Vertex u = vertices.get(i);
+                Vertex v = vertices.get(j);
+
+                if (u.clause != v.clause &&
+                    !isContradictory(u.literal, v.literal)) {
+
+                    graph[i][j] = true;
+                    graph[j][i] = true;
+                    edges++;
+                }
+            }
+        }
+
+        int k = clauses.length;
+
+        // Selected vertices: v1, v5, v7
+        int[] selected = {0, 4, 6};
+
+        System.out.println("========== SAT TO CLIQUE ==========");
+        System.out.println("Number of clauses: " + clauses.length);
+        System.out.println("Number of vertices = " + n);
+        System.out.println("Number of edges = " + edges);
+        System.out.println("Target clique size (k) = " + k);
+
+        System.out.println("\nSelected vertices:");
+
+        for (int index : selected) {
+            System.out.println(
+                "v" + (index + 1) + " = " +
+                vertices.get(index).literal.replace("!", "¬")
+            );
+        }
+
+        boolean result = checkClique(graph, selected, k);
+
+        System.out.println();
+
+        if (result) {
+            System.out.println("A clique of size " + k + " exists.");
+            System.out.println("SAT to Clique reduction completed.");
+        } else {
+            System.out.println("A clique of size " + k + " does not exist.");
+        }
+    }
+}
